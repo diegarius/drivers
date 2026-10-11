@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#Array/matriz para almacenar estructuradamente la información recogida por lspci y lsusb
 declare -a results 
 results=()
 
@@ -11,7 +10,7 @@ readonly COLS=7
 row=-1
 index=0
 
-#Extrae los campos de interés de lspci
+# lspci data extraction
 while read -r linea; do
     if [[ $linea == [0-9][0-9]* ]]; then
         (( row++ ))
@@ -31,11 +30,11 @@ while read -r linea; do
     fi
 done < <(lspci -v)
 
-#Carga lsusb -t para buscar los drivers correspondientes.
+# lsusb -t data extraction
 mapfile -t usbdrivers <<< $(lsusb -t)
 size_usbdrivers="${#usbdrivers[@]}"
 
-#Extrae los identificadores USB
+# lsusb data extraction
 found_bus=0
 while read -r linea; do
     ((row++))
@@ -48,7 +47,7 @@ while read -r linea; do
     results[((index+3))]=${dev#*ce }
     results[((index+6))]=$(sed -E "s/.*:[0-9a-z]{4} //" <<< $linea )
     
-    #Extrae los drivers
+    # usb drivers extraction
     for ((i=0; i<="$size_usbdrivers"; i++)); do
         if [[ ${usbdrivers[i]} == *"Bus ${results[((index+2))]}"* ]]; then
             for ((j=i; j<="$size_usbdrivers"; j++)); do
@@ -62,7 +61,7 @@ while read -r linea; do
     done
 done < <(lsusb)
 
-#Prints table, options and shows details.
+# table, options and details
 while true; do
     clear
     format="%3s %-4s %-4s %-6s %-14s %-14.14s %-24s\n"
